@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 import "os"
+import "rand"
 import "syscall"
 
 func main() {
@@ -14,6 +15,11 @@ type fileBasedSource struct {
 	seed int;
 }
 
+type FileBasedSource interface {
+	rand.Source;
+	Close();
+}
+
 func (src *fileBasedSource) Seed(seed int64) {
 	// it's a noop.
 }
@@ -22,7 +28,11 @@ func (rng *fileBasedSource) Int63() int64 {
 	return 1;
 }
 
-func NewFileBasedSource(filename string) (src *fileBasedSource, err os.Error) {
+func (rng *fileBasedSource) Close() {
+	syscall.Close(rng.fd)
+}
+
+func NewFileBasedSource(filename string) (src FileBasedSource, err os.Error) {
 	fileSource := new (fileBasedSource);
 	fd, e := syscall.Open(filename, 0, 0);
 	if e != 0 {
