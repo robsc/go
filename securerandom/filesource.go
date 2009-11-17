@@ -1,24 +1,16 @@
 package filesource
+// Author rschonberger@gomail.com (Robert Schonberger) 
+// Released under the Creative Commons - Attribution, Non commercial Usage OK. 
+// http://creativecommons.org/licenses/by-nc-nd/3.0 2009
 
-import "fmt"
+
 import "os"
 import "rand"
 import "syscall"
 
-func main() {
-	src, _ := NewFileSeededSource("/dev/random");
-	rgn := rand.New(src);
-	var sum int64 = 0;
-	for i:= 0; i < 5000000; i++ {
-		sum += int64(rgn.Int31());
-	}
-	fmt.Printf("Hello, bitches!%f \n", sum / 5000000);
-}
-
 type fileBasedSource struct {
 	filename string;
 	fd int;
-	seed int64;
 }
 
 type FileBasedSource interface {
@@ -28,10 +20,9 @@ type FileBasedSource interface {
 
 func (src *fileBasedSource) Seed(seed int64) {
 	// it's a noop.
-	src.seed = seed;
 }
 
-// todo(robsc): make this pretty
+// I wish there was a nicer way of doing this.
 func convertToInt(randomSlice [8]byte) int64 {
 	randomSlice[0] = randomSlice[0] &^ 0x80;
 	var retVal int64;
@@ -69,11 +60,10 @@ func NewFileBasedSource(filename string) (src FileBasedSource, err os.Error) {
 	fileSource := new (fileBasedSource);
 	fd, e := syscall.Open(filename, 0, 0);
 	if e != 0 {
-		err = os.Errno(e);
+		err = os.Errno(e)
 	}
 	fileSource.filename = filename;
 	fileSource.fd = fd;
-	fileSource.seed = 0;
 	return fileSource, err
 }
 
@@ -83,7 +73,7 @@ func NewFileSeededSource(filename string) (src rand.Source, err os.Error) {
 	if err != nil {
 		return src, err
 	}
-	// NOTE(robsc): note the limited seed space that only goes through half.
+
 	var seed int64 = fileSource.Int63();
 	src = rand.NewSource(seed);
 	return src, err
