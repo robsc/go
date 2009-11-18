@@ -8,7 +8,7 @@ import "fmt"
 import "rand"
 
 func main() {
-       src, _ := filesource.NewFileSeededSource("/dev/random");
+       src, _ := filesource.NewFileBasedSource("/dev/random");
        rgn := rand.New(src);
        var sum int64 = 0;
        for i:= 0; i < 5000000; i++ {
