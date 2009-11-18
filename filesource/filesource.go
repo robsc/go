@@ -3,7 +3,7 @@ package filesource
 // Released under the Creative Commons - Attribution, Non commercial Usage OK. 
 // http://creativecommons.org/licenses/by-nc-nd/3.0 2009
 
-
+import "bufio"
 import "encoding/binary"
 import "os"
 import "rand"
@@ -12,6 +12,7 @@ import "syscall"
 type fileBasedSource struct {
 	filename string;
 	file *os.File;
+	reader *bufio.Reader
 }
 
 type FileBasedSource interface {
@@ -32,7 +33,7 @@ func (rng *fileBasedSource) Int63() int64 {
 	var randomData [8]byte;
 	randomSlice := randomData[0 : 8];
 	
-	ret, e := rng.file.Read(randomSlice);
+	ret, e := rng.reader.Read(randomSlice);
 	if e != nil || ret < 8 {
 		return 0
 	} else {
@@ -49,6 +50,9 @@ func NewFileBasedSource(filename string) (src FileBasedSource, err os.Error) {
 	fileSource := new (fileBasedSource);
 	fileSource.file, err = os.Open(filename, syscall.O_RDONLY, 0);
 	fileSource.filename = filename;
+	if err == nil {
+		fileSource.reader = bufio.NewReader(fileSource.file)
+	}
 	return fileSource, err
 }
 
