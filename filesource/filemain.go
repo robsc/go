@@ -14,6 +14,6 @@ func main() {
        for i:= 0; i < 5000000; i++ {
                sum += int64(rgn.Int31());
        }
-       fmt.Printf("Hello, bitches!%f \n", sum / 5000000);
+       fmt.Printf("Hello, world. Random average sum is %f \n", sum / 5000000);
 }
 
