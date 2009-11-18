@@ -11,7 +11,7 @@ import "syscall"
 
 type fileBasedSource struct {
 	filename string;
-	fd int;
+	file *os.File;
 }
 
 type FileBasedSource interface {
@@ -31,8 +31,9 @@ func convertToInt(randomSlice []byte) int64 {
 func (rng *fileBasedSource) Int63() int64 {
 	var randomData [8]byte;
 	randomSlice := randomData[0 : 8];
-	ret, e := syscall.Read(rng.fd, randomSlice);
-	if e != 0 || ret < 8 {
+	
+	ret, e := rng.file.Read(randomSlice);
+	if e != nil || ret < 8 {
 		return 0
 	} else {
 		return convertToInt(randomSlice)
@@ -41,19 +42,13 @@ func (rng *fileBasedSource) Int63() int64 {
 }
 
 func (rng *fileBasedSource) Close() {
-	if rng.fd > 0 {
-		syscall.Close(rng.fd)
-	}
+		rng.file.Close()
 }
 
 func NewFileBasedSource(filename string) (src FileBasedSource, err os.Error) {
 	fileSource := new (fileBasedSource);
-	fd, e := syscall.Open(filename, 0, 0);
-	if e != 0 {
-		err = os.Errno(e)
-	}
+	fileSource.file, err = os.Open(filename, syscall.O_RDONLY, 0);
 	fileSource.filename = filename;
-	fileSource.fd = fd;
 	return fileSource, err
 }
 
