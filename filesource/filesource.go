@@ -4,6 +4,7 @@ package filesource
 // http://creativecommons.org/licenses/by-nc-nd/3.0 2009
 
 
+import "encoding/binary"
 import "os"
 import "rand"
 import "syscall"
@@ -23,19 +24,8 @@ func (src *fileBasedSource) Seed(seed int64) {
 }
 
 // I wish there was a nicer way of doing this.
-func convertToInt(randomSlice [8]byte) int64 {
-	randomSlice[0] = randomSlice[0] &^ 0x80;
-	var retVal int64;
-	retVal = (int64(randomSlice[7]) |
-		int64(randomSlice[6]) << 8 |
-		int64(randomSlice[5]) << 16 |
-		int64(randomSlice[4]) << 24 |
-		int64(randomSlice[3]) << 32 |
-		int64(randomSlice[2]) << 40 |
-		int64(randomSlice[1]) << 48 |
-		int64(randomSlice[0]) << 56);
-	return retVal;
-	
+func convertToInt(randomSlice []byte) int64 {
+     return int64(binary.BigEndian.Uint64(randomSlice) &^ ( 1<< 63))
 }
 
 func (rng *fileBasedSource) Int63() int64 {
@@ -45,7 +35,7 @@ func (rng *fileBasedSource) Int63() int64 {
 	if e != 0 || ret < 8 {
 		return 0
 	} else {
-		return convertToInt(randomData)
+		return convertToInt(randomSlice)
 	}
 	return 1
 }
